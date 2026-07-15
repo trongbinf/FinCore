@@ -29,6 +29,8 @@ Thumbs.db
 **/[Re]leases/
 **/[Bb]in/
 **/[Oo]bj/
+**/*bin\\*
+**/*obj\\*
 **/[Ll]og/
 **/[Ll]ogs/
 **/.vs/
