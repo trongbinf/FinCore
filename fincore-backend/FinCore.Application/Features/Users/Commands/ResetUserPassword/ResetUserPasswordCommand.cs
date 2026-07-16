@@ -87,11 +87,19 @@ public class ResetUserPasswordCommandHandler : IRequestHandler<ResetUserPassword
                     <p style='margin-bottom: 0; font-size: 0.9em; color: #9ca3af;'>Trân trọng,<br/>Đội ngũ FinCore Support</p>
                 </div>";
 
-            await _emailService.SendEmailAsync(user.Email!, subject, body);
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email!, subject, body);
+            }
+            catch (Exception ex)
+            {
+                // Log warning but allow password reset to succeed
+                Console.WriteLine($"[Warning] Failed to send password reset email to {user.Email}: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
-            throw new Exception($"Không thể gửi email thông báo mật khẩu mới. Lỗi: {ex.Message}. Vui lòng kiểm tra lại địa chỉ email hoặc kết nối SMTP.");
+            throw new Exception($"Lỗi chuẩn bị đổi mật khẩu: {ex.Message}");
         }
 
         await _context.SaveChangesAsync(cancellationToken);

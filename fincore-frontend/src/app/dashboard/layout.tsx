@@ -660,7 +660,7 @@ export default function DashboardLayout({
                   <div>
                     <h4 className="text-xs font-extrabold uppercase tracking-wide mb-1">Cảnh báo quan trọng</h4>
                     <p className="text-xs leading-relaxed font-medium">
-                      Hành động này sẽ xóa toàn bộ các giao dịch, nhật ký hoạt động và tài khoản thành viên khác trong dự án. Số dư quỹ câu lạc bộ sẽ được đưa về 0đ.
+                      Hành động này sẽ xóa toàn bộ các giao dịch và nhật ký hoạt động của dự án. Số dư quỹ câu lạc bộ sẽ được đưa về 0đ (tất cả tài khoản và mật khẩu thành viên sẽ được giữ lại).
                     </p>
                   </div>
                 </div>

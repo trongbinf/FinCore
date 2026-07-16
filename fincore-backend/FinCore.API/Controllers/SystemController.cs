@@ -41,9 +41,6 @@ public class SystemController : ApiControllerBase
             // 2. Delete all activity logs
             _context.ActivityLogs.RemoveRange(_context.ActivityLogs);
 
-            // 3. Delete all users except the current admin
-            var otherUsers = _context.Users.Where(u => u.Id != currentUserId);
-            _context.Users.RemoveRange(otherUsers);
 
             // 4. Reset Club Fund to 0
             _context.ClubFunds.RemoveRange(_context.ClubFunds);

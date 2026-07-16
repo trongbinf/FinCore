@@ -117,14 +117,23 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Creat
                     <p style='margin-bottom: 0; font-size: 0.9em; color: #9ca3af;'>Trân trọng,<br/>Đội ngũ FinCore Support</p>
                 </div>";
 
-            await _emailService.SendEmailAsync(newUser.Email, subject, body);
+            try
+            {
+                await _emailService.SendEmailAsync(newUser.Email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                // Log warning but allow user creation to succeed
+                Console.WriteLine($"[Warning] Failed to send activation email to {newUser.Email}: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
-            throw new Exception($"Không thể gửi email kích hoạt tài khoản. Lỗi: {ex.Message}. Vui lòng kiểm tra lại địa chỉ email.");
+            // This catches any other exceptions (like token generation or DB prep), not the email sending
+            throw new Exception($"Lỗi chuẩn bị thông tin tài khoản: {ex.Message}");
         }
 
-        // 2. Only save to DB if email was sent successfully
+        // 2. Save to DB regardless of email sending success
         await _context.SaveChangesAsync(cancellationToken);
 
         return new CreateUserResponse(
