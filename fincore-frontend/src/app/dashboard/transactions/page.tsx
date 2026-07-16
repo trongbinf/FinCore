@@ -194,7 +194,7 @@ export default function TransactionsPage() {
     const fetchData = async () => {
       try {
         const txList = await transactionService.getTransactions();
-        if (txList && txList.length > 0) setTransactions(txList);
+        if (txList) setTransactions(txList);
 
         const catList = await transactionService.getCategories();
         if (catList && catList.length > 0) setCategories(catList);

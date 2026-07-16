@@ -51,7 +51,7 @@ export default function ReportsPage() {
       try {
         const txList = await transactionService.getTransactions();
         // Only show approved transactions in reports
-        if (txList && txList.length > 0) {
+        if (txList) {
           setTransactions(txList.filter((t) => t.status === "Approved"));
         }
         const catList = await transactionService.getCategories();
