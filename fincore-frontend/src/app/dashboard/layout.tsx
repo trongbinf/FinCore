@@ -21,8 +21,12 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Settings,
+  AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { systemService } from "@/services/system";
 
 interface SidebarItem {
   name: string;
@@ -57,12 +61,18 @@ export default function DashboardLayout({
 
   // Profile and Password states
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [profileActiveTab, setProfileActiveTab] = useState<"info" | "password">("info");
+  const [profileActiveTab, setProfileActiveTab] = useState<"info" | "password" | "system">("info");
   const [changePwdData, setChangePwdData] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
   const [changePwdError, setChangePwdError] = useState<string | null>(null);
   const [changePwdSuccess, setChangePwdSuccess] = useState<string | null>(null);
   const [isChangingPwd, setIsChangingPwd] = useState(false);
   const [showPwd, setShowPwd] = useState({ old: false, new: false, confirm: false });
+
+  // System Reset states
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
   const adminNotis = [
     { id: 1, text: "Thành viên Trần Thị B vừa đề xuất giao dịch chờ duyệt: 'Thu quỹ đóng góp từ nhà tài trợ' (15M)", time: "10 phút trước", isNew: true },
@@ -167,6 +177,33 @@ export default function DashboardLayout({
       setChangePwdError(err.response?.data?.message || err.message || "Đổi mật khẩu thất bại.");
     } finally {
       setIsChangingPwd(false);
+    }
+  };
+
+  const handleSystemReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError(null);
+    setResetSuccess(null);
+
+    if (resetConfirmText !== "RESET") {
+      setResetError("Vui lòng nhập chính xác chữ 'RESET' để xác nhận.");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      await systemService.resetData();
+      setResetSuccess("Reset toàn bộ dữ liệu dự án thành công!");
+      setResetConfirmText("");
+      setTimeout(() => {
+        setIsProfileModalOpen(false);
+        setResetSuccess(null);
+        window.location.reload();
+      }, 2000);
+    } catch (err: any) {
+      setResetError(err.response?.data?.message || err.message || "Reset dữ liệu thất bại.");
+    } finally {
+      setIsResetting(false);
     }
   };
   if (!isLoaded || !user) {
@@ -461,6 +498,18 @@ export default function DashboardLayout({
               >
                 Đổi mật khẩu
               </button>
+              {user.role === "Admin" && (
+                <button
+                  onClick={() => setProfileActiveTab("system")}
+                  className={`flex-1 pb-3 text-sm font-bold text-center border-b-2 transition-all ${
+                    profileActiveTab === "system"
+                      ? "border-emerald-600 text-emerald-600"
+                      : "border-transparent text-zinc-400 hover:text-zinc-600"
+                  }`}
+                >
+                  Hệ thống
+                </button>
+              )}
             </div>
 
             {/* Tab Contents */}
@@ -506,7 +555,7 @@ export default function DashboardLayout({
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : profileActiveTab === "password" ? (
               <div>
                 {changePwdError && (
                   <div className="mb-6 p-4 bg-red-50 text-red-700 text-sm rounded-2xl border border-red-100">
@@ -604,6 +653,71 @@ export default function DashboardLayout({
                   </div>
                 </form>
               </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex gap-3 text-amber-800">
+                  <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wide mb-1">Cảnh báo quan trọng</h4>
+                    <p className="text-xs leading-relaxed font-medium">
+                      Hành động này sẽ xóa toàn bộ các giao dịch, nhật ký hoạt động và tài khoản thành viên khác trong dự án. Số dư quỹ câu lạc bộ sẽ được đưa về 0đ.
+                    </p>
+                  </div>
+                </div>
+
+                {resetError && (
+                  <div className="p-4 bg-red-50 text-red-700 text-sm rounded-2xl border border-red-100">
+                    {resetError}
+                  </div>
+                )}
+                
+                {resetSuccess && (
+                  <div className="p-4 bg-emerald-50 text-emerald-700 text-sm rounded-2xl border border-emerald-100 flex items-center gap-2">
+                    <Check className="w-4 h-4 animate-bounce" />
+                    {resetSuccess}
+                  </div>
+                )}
+
+                <form onSubmit={handleSystemReset} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-bold text-zinc-700 mb-2">
+                      Xác nhận hành động
+                    </label>
+                    <p className="text-xs text-zinc-500 mb-2.5">
+                      Vui lòng nhập chữ <strong className="text-red-600 select-all">RESET</strong> vào ô dưới đây để tiếp tục.
+                    </p>
+                    <input
+                      type="text"
+                      disabled={isResetting}
+                      value={resetConfirmText}
+                      onChange={(e) => setResetConfirmText(e.target.value)}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/20 text-center font-bold tracking-widest text-red-600"
+                      placeholder="RESET"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsProfileModalOpen(false)}
+                      disabled={isResetting}
+                      className="flex-1 bg-white border border-zinc-200 text-zinc-700 font-bold py-3 px-4 rounded-xl text-sm transition-all hover:bg-zinc-50"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isResetting || resetConfirmText !== "RESET"}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {isResetting ? "Đang xóa..." : "Xóa tất cả dữ liệu"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )
             )}
           </div>
         </div>
