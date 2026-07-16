@@ -41,6 +41,10 @@ public class SystemController : ApiControllerBase
             // 2. Delete all activity logs
             _context.ActivityLogs.RemoveRange(_context.ActivityLogs);
 
+            // 3. Delete all users except seeded admin and members
+            var seededEmails = new[] { "admin@fincore.com", "member1@fincore.com", "member2@fincore.com" };
+            var otherUsers = _context.Users.Where(u => !seededEmails.Contains(u.Email));
+            _context.Users.RemoveRange(otherUsers);
 
             // 4. Reset Club Fund to 0
             _context.ClubFunds.RemoveRange(_context.ClubFunds);
