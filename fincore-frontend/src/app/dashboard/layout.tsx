@@ -717,7 +717,6 @@ export default function DashboardLayout({
                   </div>
                 </form>
               </div>
-            )
             )}
           </div>
         </div>
